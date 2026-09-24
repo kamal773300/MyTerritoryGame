@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100 select-none overflow-hidden">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>My Territory - Standalone Game</title>
+  
+  <!-- External CDN Dependencies -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .glass-btn {
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.15s ease-in-out;
+    }
+
+    .glass-btn:active {
+      transform: scale(0.95);
+      background: rgba(51, 65, 85, 0.95);
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
+      50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.8); }
+    }
+
+    .pulse-glow {
+      animation: pulseGlow 2s infinite;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 4px;
+    }
+  </style>
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+</head>
+<body class="h-full w-full flex flex-col justify-center items-center relative overflow-hidden bg-slate-950">
+
+  <div id="game-container" class="relative w-full h-full flex justify-center items-center overflow-hidden">
+    <!-- HTML5 Main Gameplay Canvas -->
+    <canvas id="gameCanvas" class="absolute inset-0 block w-full h-full cursor-crosshair"></canvas>
+
+    <!-- 1. SPLASH SCREEN -->
+    <div id="screen-splash" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-slate-950 transition-opacity duration-500">
+      <div class="flex flex-col items-center animate-bounce mb-6">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4">
+          <i class="fa-solid fa-draw-polygon text-4xl text-white"></i>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400">
+          MY TERRITORY
+        </h1>
+        <p class="text-slate-400 text-sm mt-2 font-medium tracking-wide">STANDALONE HTML5 EDITION</p>
+      </div>
+      <div class="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+        <div id="splash-bar" class="h-full bg-gradient-to-r from-blue-500 to-cyan-400 w-0 transition-all duration-1000 ease-out"></div>
+      </div>
+    </div>
+
+    <!-- 2. MAIN MENU SCREEN -->
+    <div id="screen-menu" class="hidden absolute inset-0 z-40 flex flex-col items-center justify-between p-6 bg-slate-950/80 backdrop-blur-md">
+      <div class="w-full max-w-md flex justify-between items-center pt-2">
+        <div class="flex items-center space-x-2 glass-panel px-4 py-2 rounded-full shadow-inner">
+          <i class="fa-solid fa-coins text-amber-400 text-lg"></i>
+          <span id="menu-coins" class="font-bold text-amber-300 text-lg">0</span>
+        </div>
+        <button id="btn-open-settings" class="glass-btn w-11 h-11 rounded-full flex items-center justify-center text-slate-300 hover:text-white">
+          <i class="fa-solid fa-gear text-lg"></i>
+        </button>
+      </div>
+
+      <div class="flex flex-col items-center text-center my-auto">
+        <h1 class="text-5xl font-black tracking-tight text-white mb-2 drop-shadow-md">
+          MY <span class="text-blue-500">TERRITORY</span>
+        </h1>
+        <p class="text-slate-400 text-sm mb-8 font-medium max-w-xs">Enclose the grid, conquer the bots, rule the map!</p>
+        
+        <button id="btn-play" class="pulse-glow w-64 py-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xl shadow-xl shadow-blue-600/40 transform active:scale-95 transition-all flex items-center justify-center space-x-3">
+          <i class="fa-solid fa-play"></i>
+          <span>PLAY NOW</span>
+        </button>
+
+        <button id="btn-open-skins" class="mt-4 w-64 py-3 rounded-xl glass-btn text-slate-200 font-bold hover:bg-slate-800/80 flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-palette text-blue-400"></i>
+          <span>SKINS SHOP</span>
+        </button>
+      </div>
+
+      <div class="text-slate-500 text-xs text-center pb-2">
+        Swipe or D-Pad to move &bull; Return home to capture!
+      </div>
+    </div>
+
+    <!-- 3. GAMEPLAY HUD -->
+    <div id="hud-gameplay" class="hidden absolute inset-0 z-20 pointer-events-none flex flex-col justify-between p-4 md:p-6">
+      <div class="flex justify-between items-start w-full">
+        <!-- Territory Progress Card -->
+        <div class="glass-panel pointer-events-auto p-3 rounded-2xl flex flex-col space-y-1.5 shadow-lg min-w-[140px]">
+          <div class="flex justify-between items-center text-xs text-slate-400 font-bold uppercase tracking-wider">
+            <span>Map Owned</span>
+            <span id="hud-percent-text" class="text-blue-400 font-black">2.5%</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+            <div id="hud-percent-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full w-[2.5%] transition-all duration-300"></div>
+          </div>
+        </div>
+
+        <!-- Leaderboard Mini-List -->
+        <div class="glass-panel pointer-events-auto p-3 rounded-2xl shadow-lg w-44">
+          <div class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex justify-between items-center">
+            <span>Leaderboard</span>
+            <i class="fa-solid fa-trophy text-amber-400 text-xs"></i>
+          </div>
+          <div id="hud-leaderboard" class="space-y-1 text-xs font-semibold"></div>
+        </div>
+
+        <!-- Pause Button -->
+        <button id="btn-pause" class="glass-btn pointer-events-auto w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-white">
+          <i class="fa-solid fa-pause"></i>
+        </button>
+      </div>
+
+      <!-- Touch Controls (Virtual D-Pad) -->
+      <div id="hud-dpad" class="hidden pointer-events-auto self-center mb-6 relative w-36 h-36 opacity-75 hover:opacity-100 transition-opacity">
+        <button id="dpad-up" class="absolute top-0 left-12 w-12 h-12 bg-slate-800/90 border border-slate-700 active:bg-blue-600 rounded-t-xl text-white flex items-center justify-center text-lg">
+          <i class="fa-solid fa-chevron-up"></i>
+        </button>
+        <button id="dpad-down" class="absolute bottom-0 left-12 w-12 h-12 bg-slate-800/90 border border-slate-700 active:bg-blue-600 rounded-b-xl text-white flex items-center justify-center text-lg">
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <button id="dpad-left" class="absolute top-12 left-0 w-12 h-12 bg-slate-800/90 border border-slate-700 active:bg-blue-600 rounded-l-xl text-white flex items-center justify-center text-lg">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button id="dpad-right" class="absolute top-12 right-0 w-12 h-12 bg-slate-800/90 border border-slate-700 active:bg-blue-600 rounded-r-xl text-white flex items-center justify-center text-lg">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+        <div class="absolute top-12 left-12 w-12 h-12 bg-slate-900 border border-slate-800 rounded-md"></div>
+      </div>
+    </div>
+
+    <!-- 4. PAUSE MODAL -->
+    <div id="modal-pause" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md">
+      <div class="glass-panel p-6 rounded-3xl w-80 text-center flex flex-col space-y-4 shadow-2xl">
+        <h2 class="text-2xl font-black text-white">GAME PAUSED</h2>
+        <button id="btn-resume" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-white shadow-lg">
+          RESUME
+        </button>
+        <button id="btn-quit" class="w-full py-3 rounded-xl glass-btn text-slate-300 font-bold hover:bg-slate-800">
+          MAIN MENU
+        </button>
+      </div>
+    </div>
+
+    <!-- 5. GAME OVER MODAL -->
+    <div id="modal-gameover" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4">
+      <div class="glass-panel p-6 rounded-3xl w-full max-w-sm text-center flex flex-col space-y-4 shadow-2xl border border-rose-500/30">
+        <div class="w-16 h-16 rounded-full bg-rose-500/20 text-rose-500 flex items-center justify-center text-3xl mx-auto border border-rose-500/40">
+          <i class="fa-solid fa-skull"></i>
+        </div>
+        
+        <div>
+          <h2 class="text-3xl font-black text-white">GAME OVER</h2>
+          <p id="gameover-cause" class="text-rose-400 text-xs font-semibold mt-1">Trail Intercepted!</p>
+        </div>
+
+        <div class="bg-slate-900/80 p-4 rounded-2xl flex justify-around items-center border border-slate-800">
+          <div>
+            <div class="text-slate-400 text-xs font-bold uppercase">Territory</div>
+            <div id="gameover-percent" class="text-2xl font-black text-blue-400">0%</div>
+          </div>
+          <div class="w-px h-8 bg-slate-800"></div>
+          <div>
+            <div class="text-slate-400 text-xs font-bold uppercase">Coins Earned</div>
+            <div id="gameover-coins" class="text-2xl font-black text-amber-400 flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-coins text-lg me-1"></i>
+              <span id="gameover-coins-val">0</span>
+            </div>
+          </div>
+        </div>
+
+        <button id="btn-ad-revive" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2 transform active:scale-95 transition-all">
+          <i class="fa-solid fa-circle-play text-lg"></i>
+          <span>REVIVE & CONTINUE (AD)</span>
+        </button>
+
+        <button id="btn-ad-double" class="w-full py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-500/40 flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-gem text-amber-400"></i>
+          <span>DOUBLE EARNED COINS (AD)</span>
+        </button>
+
+        <div class="flex space-x-3 pt-2">
+          <button id="btn-retry" class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-white shadow-md">
+            RETRY
+          </button>
+          <button id="btn-gameover-menu" class="flex-1 py-3 rounded-xl glass-btn text-slate-300 font-bold hover:bg-slate-800">
+            MENU
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. SKINS SHOP MODAL -->
+    <div id="modal-skins" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+      <div class="glass-panel p-6 rounded-3xl w-full max-w-md max-h-[90vh] flex flex-col justify-between shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-black text-white flex items-center space-x-2">
+            <i class="fa-solid fa-palette text-blue-400"></i>
+            <span>SKINS SHOP</span>
+          </h2>
+          <div class="flex items-center space-x-1.5 bg-slate-900 px-3 py-1.5 rounded-full border border-slate-800">
+            <i class="fa-solid fa-coins text-amber-400 text-sm"></i>
+            <span id="skins-coins" class="font-bold text-amber-300 text-sm">0</span>
+          </div>
+        </div>
+
+        <div id="skins-grid" class="grid grid-cols-2 gap-3 overflow-y-auto pr-1 my-2 max-h-[50vh]"></div>
+
+        <button id="btn-close-skins" class="mt-4 w-full py-3 rounded-xl glass-btn text-white font-bold hover:bg-slate-800">
+          CLOSE SHOP
+        </button>
+      </div>
+    </div>
+
+    <!-- 7. SETTINGS MODAL -->
+    <div id="modal-settings" class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+      <div class="glass-panel p-6 rounded-3xl w-80 flex flex-col space-y-4 shadow-2xl">
+        <h2 class="text-2xl font-black text-white text-center">SETTINGS</h2>
+
+        <div class="flex justify-between items-center bg-slate-900 p-3.5 rounded-2xl border border-slate-800">
+          <span class="font-bold text-slate-200 text-sm">Sound Effects</span>
+          <button id="btn-toggle-sound" class="w-12 h-6 bg-blue-600 rounded-full relative transition-colors">
+            <div id="toggle-sound-knob" class="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform"></div>
+          </button>
+        </div>
+
+        <div class="flex justify-between items-center bg-slate-900 p-3.5 rounded-2xl border border-slate-800">
+          <span class="font-bold text-slate-200 text-sm">On-Screen D-Pad</span>
+          <button id="btn-toggle-dpad" class="w-12 h-6 bg-slate-700 rounded-full relative transition-colors">
+            <div id="toggle-dpad-knob" class="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform"></div>
+          </button>
+        </div>
+
+        <button id="btn-close-settings" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 font-bold text-white shadow-md">
+          SAVE & CLOSE
+        </button>
+      </div>
+    </div>
+
+    <!-- 8. SIMULATED AD OVERLAY -->
+    <div id="modal-ad" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-between bg-slate-900 p-6 text-white">
+      <div class="w-full flex justify-between items-center">
+        <span class="text-xs uppercase font-extrabold tracking-widest text-slate-400 bg-slate-800 px-3 py-1 rounded-md">ADVERTISEMENT</span>
+        <div id="ad-timer" class="text-sm font-bold bg-slate-800 px-3 py-1 rounded-md text-amber-400">
+          Reward in 5s
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center text-center my-auto space-y-4">
+        <div class="w-24 h-24 rounded-3xl bg-gradient-to-tr from-amber-500 to-rose-500 flex items-center justify-center text-4xl shadow-2xl animate-pulse">
+          <i class="fa-solid fa-gamepad"></i>
+        </div>
+        <h3 class="text-2xl font-black">SUPER AD GAME</h3>
+        <p class="text-slate-400 text-sm max-w-xs">Play the ultimate mini-game today! Tap below to install.</p>
+        <div class="w-48 bg-slate-800 h-2 rounded-full overflow-hidden">
+          <div id="ad-progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-100 linear"></div>
+        </div>
+      </div>
+
+      <button id="btn-close-ad" class="hidden w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 font-black text-white shadow-xl">
+        CLAIM REWARD & CONTINUE
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    /* =========================================================================
+       MY TERRITORY - CORE GAME ENGINE (STANDALONE HTML5)
+       ========================================================================= */
+
+    const GRID_SIZE = 60; // 60x60 Cells
+    const CELL_SIZE = 22; // Pixels per cell
+    const WORLD_SIZE = GRID_SIZE * CELL_SIZE;
+
+    const T_NEUTRAL = 0;
+    const T_PLAYER_TERR = 1;
+    const T_PLAYER_TRAIL = 2;
+
+    const BOT_PALETTES = [
+      { name: 'Red Crimson', terr: '#f43f5e', trail: '#fda4af', dark: '#9f1239' },
+      { name: 'Amber Orange', terr: '#f59e0b', trail: '#fde68a', dark: '#92400e' },
+      { name: 'Purple Neon', terr: '#a855f7', trail: '#e9d5ff', dark: '#6b21a8' },
+      { name: 'Emerald Lime', terr: '#10b981', trail: '#a7f3d0', dark: '#065f46' }
+    ];
+
+    const SKINS = [
+      { id: 'cyan', name: 'Cyber Cyan', terr: '#06b6d4', trail: '#a5f3fc', dark: '#155e75', price: 0 },
+      { id: 'blue', name: 'Royal Blue', terr: '#3b82f6', trail: '#bfdbfe', dark: '#1e40af', price: 100 },
+      { id: 'sunset', name: 'Sunset Amber', terr: '#f97316', trail: '#ffedd5', dark: '#9a3412', price: 250 },
+      { id: 'pink', name: 'Neon Pink', terr: '#ec4899', trail: '#fbcfe8', dark: '#9d174d', price: 400 },
+      { id: 'gold', name: 'Golden Legend', terr: '#eab308', trail: '#fef08a', dark: '#854d0e', price: 800 }
+    ];
+
+    const DIR_UP = { x: 0, y: -1 };
+    const DIR_DOWN = { x: 0, y: 1 };
+    const DIR_LEFT = { x: -1, y: 0 };
+    const DIR_RIGHT = { x: 1, y: 0 };
+
+    let canvas, ctx;
+    let grid = []; 
+    let player = null;
+    let bots = [];
+    let particles = [];
+    let floatingTexts = [];
+    
+    let state = {
+      coins: 100,
+      selectedSkin: 'cyan',
+      soundEnabled: true,
+      dpadEnabled: false,
+      retryCount: 0
+    };
+
+    let gameState = 'SPLASH';
+    let audioCtx = null;
+    let touchStartX = 0, touchStartY = 0;
+    let camera = { x: WORLD_SIZE / 2, y: WORLD_SIZE / 2, scale: 1.0, targetScale: 1.0 };
+    let adCallback = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      if (!state.soundEnabled) return;
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'tick') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'capture') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(261.63, now);
+          osc.frequency.exponentialRampToValueAtTime(523.25, now + 0.25);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'death') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(300, now);
+          osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        } else if (type === 'kill') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(600, now);
+          osc.frequency.setValueAtTime(800, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        } else if (type === 'click') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, now);
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+          osc.start(now);
+          osc.stop(now + 0.04);
+        }
+      } catch (e) {}
+    }
+
+    function createGrid() {
+      grid = [];
+      for (let r = 0; r < GRID_SIZE; r++) {
+        const row = [];
+        for (let c = 0; c < GRID_SIZE; c++) {
+          row.push(T_NEUTRAL);
+        }
+        grid.push(row);
+      }
+    }
+
+    function spawnHomeTerritory(centerRow, centerCol, terrVal) {
+      const half = 2;
+      for (let r = centerRow - half; r <= centerRow + half; r++) {
+        for (let c = centerCol - half; c <= centerCol + half; c++) {
+          if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
+            grid[r][c] = terrVal;
+          }
+        }
+      }
+    }
+
+    class Entity {
+      constructor(id, isPlayer, startR, startC, palette) {
+        this.id = id;
+        this.isPlayer = isPlayer;
+        this.gridR = startR;
+        this.gridC = startC;
+        
+        this.x = startC * CELL_SIZE + CELL_SIZE / 2;
+        this.y = startR * CELL_SIZE + CELL_SIZE / 2;
+        
+        this.dir = DIR_RIGHT;
+        this.nextDir = DIR_RIGHT;
+        this.speed = 4.2;
+        this.moveProgress = 0;
+        
+        this.palette = palette;
+        this.terrVal = isPlayer ? T_PLAYER_TERR : (10 + (id - 2) * 2);
+        this.trailVal = isPlayer ? T_PLAYER_TRAIL : (11 + (id - 2) * 2);
+        
+        this.currentTrailCells = [];
+        this.isDead = false;
+
+        this.aiState = 'EXPANDING';
+        this.aiStepsInDir = 0;
+        this.aiMaxSteps = 6 + Math.floor(Math.random() * 8);
+
+        spawnHomeTerritory(startR, startC, this.terrVal);
+      }
+
+      update(dt) {
+        if (this.isDead) return;
+
+        if (this.moveProgress === 0) {
+          if (!(this.nextDir.x === -this.dir.x && this.nextDir.y === -this.dir.y)) {
+            this.dir = this.nextDir;
+          }
+          if (!this.isPlayer) {
+            this.updateAI();
+          }
+        }
+
+        this.moveProgress += this.speed * dt;
+
+        if (this.moveProgress >= 1) {
+          this.moveProgress = 0;
+          this.gridC += this.dir.x;
+          this.gridR += this.dir.y;
+
+          if (this.gridC < 0 || this.gridC >= GRID_SIZE || this.gridR < 0 || this.gridR >= GRID_SIZE) {
+            this.gridC = Math.max(0, Math.min(GRID_SIZE - 1, this.gridC));
+            this.gridR = Math.max(0, Math.min(GRID_SIZE - 1, this.gridR));
+            this.pickRandomTurn();
+          }
+
+          this.x = this.gridC * CELL_SIZE + CELL_SIZE / 2;
+          this.y = this.gridR * CELL_SIZE + CELL_SIZE / 2;
+
+          this.onEnterCell();
+        } else {
+          this.x = (this.gridC + this.dir.x * this.moveProgress) * CELL_SIZE + CELL_SIZE / 2;
+          this.y = (this.gridR + this.dir.y * this.moveProgress) * CELL_SIZE + CELL_SIZE / 2;
+        }
+      }
+
+      onEnterCell() {
+        if (!grid || !grid[this.gridR]) return;
+        const currentCellState = grid[this.gridR][this.gridC];
+
+        checkTrailCollisions(this);
+        if (this.isDead) return;
+
+        if (currentCellState !== this.terrVal) {
+          if (currentCellState !== this.trailVal) {
+            grid[this.gridR][this.gridC] = this.trailVal;
+            this.currentTrailCells.push({ r: this.gridR, c: this.gridC });
+            if (this.isPlayer) playSound('tick');
+          }
+        } else if (this.currentTrailCells.length > 0) {
+          const capturedCount = closeTerritoryLoop(this);
+          if (capturedCount > 0 && this.isPlayer) {
+            playSound('capture');
+            spawnFloatingText(`+${capturedCount}`, this.x, this.y, '#38bdf8');
+          }
+        }
+      }
+
+      pickRandomTurn() {
+        const turns = [DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT].filter(
+          d => !(d.x === -this.dir.x && d.y === -this.dir.y)
+        );
+        this.nextDir = turns[Math.floor(Math.random() * turns.length)];
+      }
+
+      updateAI() {
+        this.aiStepsInDir++;
+        if (this.currentTrailCells.length > 12) {
+          this.aiState = 'RETURNING';
+        }
+
+        if (this.aiState === 'EXPANDING') {
+          if (this.aiStepsInDir >= this.aiMaxSteps || Math.random() < 0.1) {
+            this.pickRandomTurn();
+            this.aiStepsInDir = 0;
+            this.aiMaxSteps = 4 + Math.floor(Math.random() * 8);
+          }
+        } else if (this.aiState === 'RETURNING') {
+          const homeCell = findClosestTerritoryCell(this.gridR, this.gridC, this.terrVal);
+          if (homeCell) {
+            const dr = homeCell.r - this.gridR;
+            const dc = homeCell.c - this.gridC;
+            if (Math.abs(dc) > Math.abs(dr) && dc !== 0) {
+              const wantedDir = dc > 0 ? DIR_RIGHT : DIR_LEFT;
+              if (wantedDir.x !== -this.dir.x) this.nextDir = wantedDir;
+            } else if (dr !== 0) {
+              const wantedDir = dr > 0 ? DIR_DOWN : DIR_UP;
+              if (wantedDir.y !== -this.dir.y) this.nextDir = wantedDir;
+            }
+          }
+          if (grid[this.gridR][this.gridC] === this.terrVal) {
+            this.aiState = 'EXPANDING';
+            this.aiStepsInDir = 0;
+          }
+        }
+      }
+    }
+
+    function closeTerritoryLoop(entity) {
+      const terrVal = entity.terrVal;
+      for (const cell of entity.currentTrailCells) {
+        grid[cell.r][cell.c] = terrVal;
+      }
+      entity.currentTrailCells = [];
+
+      const visited = Array.from({ length: GRID_SIZE }, () => new Array(GRID_SIZE).fill(false));
+      const queue = [];
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (r === 0 || r === GRID_SIZE - 1 || c === 0 || c === GRID_SIZE - 1) {
+            if (grid[r][c] !== terrVal) {
+              visited[r][c] = true;
+              queue.push([r, c]);
+            }
+          }
+        }
+      }
+
+      let head = 0;
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      while (head < queue.length) {
+        const [r, c] = queue[head++];
+        for (let i = 0; i < 4; i++) {
+          const nr = r + dirs[i][0];
+          const nc = c + dirs[i][1];
+          if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE) {
+            if (!visited[nr][nc] && grid[nr][nc] !== terrVal) {
+              visited[nr][nc] = true;
+              queue.push([nr, nc]);
+            }
+          }
+        }
+      }
+
+      let capturedCount = 0;
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (!visited[r][c] && grid[r][c] !== terrVal) {
+            grid[r][c] = terrVal;
+            capturedCount++;
+            if (Math.random() < 0.2) {
+              spawnParticle(c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2, entity.palette.terr);
+            }
+          }
+        }
+      }
+      return capturedCount;
+    }
+
+    function checkTrailCollisions(attacker) {
+      const r = attacker.gridR;
+      const c = attacker.gridC;
+      if (!grid || !grid[r]) return;
+      const targetState = grid[r][c];
+
+      const allEntities = [player, ...bots].filter(e => e && !e.isDead);
+
+      for (const victim of allEntities) {
+        if (targetState === victim.trailVal) {
+          if (attacker === victim) continue; // Self crossing allowed per rules
+          killEntity(victim, attacker);
+        }
+      }
+    }
+
+    function killEntity(victim, killer) {
+      victim.isDead = true;
+      playSound(victim.isPlayer ? 'death' : 'kill');
+
+      for (let i = 0; i < 25; i++) {
+        spawnParticle(victim.x, victim.y, victim.palette.terr);
+      }
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (grid[r][c] === victim.trailVal) {
+            grid[r][c] = T_NEUTRAL;
+          }
+        }
+      }
+      victim.currentTrailCells = [];
+
+      if (victim.isPlayer) {
+        setTimeout(() => triggerGameOver(killer ? `Killed by ${killer.palette.name}` : 'Trail Intercepted!'), 600);
+      } else {
+        setTimeout(() => respawnBot(victim), 3500);
+      }
+    }
+
+    function respawnBot(bot) {
+      if (gameState !== 'PLAYING') return;
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (grid[r][c] === bot.terrVal) grid[r][c] = T_NEUTRAL;
+        }
+      }
+
+      let safeR, safeC;
+      do {
+        safeR = 8 + Math.floor(Math.random() * (GRID_SIZE - 16));
+        safeC = 8 + Math.floor(Math.random() * (GRID_SIZE - 16));
+      } while (player && Math.hypot(safeC - player.gridC, safeR - player.gridR) < 15);
+
+      bot.gridR = safeR;
+      bot.gridC = safeC;
+      bot.x = safeC * CELL_SIZE + CELL_SIZE / 2;
+      bot.y = safeR * CELL_SIZE + CELL_SIZE / 2;
+      bot.isDead = false;
+      bot.moveProgress = 0;
+      bot.dir = DIR_RIGHT;
+      bot.nextDir = DIR_RIGHT;
+      spawnHomeTerritory(safeR, safeC, bot.terrVal);
+    }
+
+    function findClosestTerritoryCell(r, c, terrVal) {
+      let closest = null;
+      let minDist = Infinity;
+      for (let tr = 0; tr < GRID_SIZE; tr++) {
+        for (let tc = 0; tc < GRID_SIZE; tc++) {
+          if (grid[tr] && grid[tr][tc] === terrVal) {
+            const dist = Math.hypot(tr - r, tc - c);
+            if (dist < minDist) {
+              minDist = dist;
+              closest = { r: tr, c: tc };
+            }
+          }
+        }
+      }
+      return closest;
+    }
+
+    function render() {
+      if (!ctx || !grid || grid.length === 0) return;
+
+      ctx.fillStyle = '#020617';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+
+      if (player && !player.isDead) {
+        camera.x += (player.x - camera.x) * 0.1;
+        camera.y += (player.y - camera.y) * 0.1;
+
+        const playerPercent = calculateOwnedPercent(T_PLAYER_TERR);
+        camera.targetScale = Math.max(0.65, 1.0 - (playerPercent / 100) * 0.45);
+        camera.scale += (camera.targetScale - camera.scale) * 0.05;
+      }
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(camera.scale, camera.scale);
+      ctx.translate(-camera.x, -camera.y);
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const val = grid[r] ? grid[r][c] : T_NEUTRAL;
+          const x = c * CELL_SIZE;
+          const y = r * CELL_SIZE;
+
+          if (val === T_NEUTRAL) {
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+          } else if (val === T_PLAYER_TERR) {
+            const pSkin = getSkinPalette(state.selectedSkin);
+            ctx.fillStyle = pSkin.terr;
+            ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+          } else if (val === T_PLAYER_TRAIL) {
+            const pSkin = getSkinPalette(state.selectedSkin);
+            ctx.fillStyle = pSkin.trail;
+            ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+          } else {
+            for (const bot of bots) {
+              if (val === bot.terrVal) {
+                ctx.fillStyle = bot.palette.terr;
+                ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE);
+                break;
+              } else if (val === bot.trailVal) {
+                ctx.fillStyle = bot.palette.trail;
+                ctx.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 4;
+      ctx.strokeRect(0, 0, WORLD_SIZE, WORLD_SIZE);
+
+      const allEntities = [player, ...bots].filter(e => e && !e.isDead);
+      for (const e of allEntities) {
+        ctx.save();
+        ctx.fillStyle = e.isPlayer ? getSkinPalette(state.selectedSkin).dark : e.palette.dark;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.roundRect(
+          e.x - CELL_SIZE * 0.45,
+          e.y - CELL_SIZE * 0.45,
+          CELL_SIZE * 0.9,
+          CELL_SIZE * 0.9,
+          6
+        );
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      updateAndRenderParticles();
+      updateAndRenderFloatingText();
+
+      ctx.restore();
+    }
+
+    function spawnParticle(x, y, color) {
+      particles.push({
+        x: x, y: y,
+        vx: (Math.random() - 0.5) * 120,
+        vy: (Math.random() - 0.5) * 120,
+        size: 3 + Math.random() * 4,
+        color: color,
+        alpha: 1.0
+      });
+    }
+
+    function updateAndRenderParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx * 0.016;
+        p.y += p.vy * 0.016;
+        p.alpha -= 0.025;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function spawnFloatingText(text, x, y, color) {
+      floatingTexts.push({
+        text: text, x: x, y: y, vy: -40, alpha: 1.0, color: color
+      });
+    }
+
+    function updateAndRenderFloatingText() {
+      for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const ft = floatingTexts[i];
+        ft.y += ft.vy * 0.016;
+        ft.alpha -= 0.02;
+
+        if (ft.alpha <= 0) {
+          floatingTexts.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = ft.alpha;
+        ctx.fillStyle = ft.color;
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.restore();
+      }
+    }
+
+    function calculateOwnedPercent(terrVal) {
+      let count = 0;
+      const total = GRID_SIZE * GRID_SIZE;
+      if (!grid || grid.length < GRID_SIZE) return "0.0";
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (grid[r] && grid[r][c] === terrVal) count++;
+        }
+      }
+      return ((count / total) * 100).toFixed(1);
+    }
+
+    function updateHUD() {
+      if (!player) return;
+
+      const pPercent = calculateOwnedPercent(T_PLAYER_TERR);
+      document.getElementById('hud-percent-text').innerText = `${pPercent}%`;
+      document.getElementById('hud-percent-bar').style.width = `${pPercent}%`;
+
+      const ranks = [
+        { name: 'YOU', percent: parseFloat(pPercent), color: 'text-blue-400' }
+      ];
+
+      bots.forEach((b) => {
+        const bPercent = parseFloat(calculateOwnedPercent(b.terrVal));
+        ranks.push({ name: b.palette.name.split(' ')[0], percent: bPercent, color: 'text-slate-300' });
+      });
+
+      ranks.sort((a, b) => b.percent - a.percent);
+
+      const lbContainer = document.getElementById('hud-leaderboard');
+      lbContainer.innerHTML = '';
+      ranks.forEach((r, idx) => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center';
+        row.innerHTML = `
+          <span class="${r.color}">${idx + 1}. ${r.name}</span>
+          <span class="font-bold text-white">${r.percent}%</span>
+        `;
+        lbContainer.appendChild(row);
+      });
+    }
+
+    function setupControls() {
+      window.addEventListener('keydown', (e) => {
+        if (gameState !== 'PLAYING' || !player || player.isDead) return;
+        switch (e.key) {
+          case 'ArrowUp':
+          case 'w':
+          case 'W':
+            if (player.dir !== DIR_DOWN) player.nextDir = DIR_UP;
+            break;
+          case 'ArrowDown':
+          case 's':
+          case 'S':
+            if (player.dir !== DIR_UP) player.nextDir = DIR_DOWN;
+            break;
+          case 'ArrowLeft':
+          case 'a':
+          case 'A':
+            if (player.dir !== DIR_RIGHT) player.nextDir = DIR_LEFT;
+            break;
+          case 'ArrowRight':
+          case 'd':
+          case 'D':
+            if (player.dir !== DIR_LEFT) player.nextDir = DIR_RIGHT;
+            break;
+        }
+      });
+
+      window.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', (e) => {
+        if (gameState !== 'PLAYING' || !player || player.isDead) return;
+        if (e.changedTouches.length === 0) return;
+
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        const minSwipe = 25;
+
+        if (Math.abs(dx) > Math.abs(dy)) {
+          if (Math.abs(dx) > minSwipe) {
+            if (dx > 0 && player.dir !== DIR_LEFT) player.nextDir = DIR_RIGHT;
+            else if (dx < 0 && player.dir !== DIR_RIGHT) player.nextDir = DIR_LEFT;
+          }
+        } else {
+          if (Math.abs(dy) > minSwipe) {
+            if (dy > 0 && player.dir !== DIR_UP) player.nextDir = DIR_DOWN;
+            else if (dy < 0 && player.dir !== DIR_DOWN) player.nextDir = DIR_UP;
+          }
+        }
+      }, { passive: true });
+
+      document.getElementById('dpad-up').onclick = () => { if (player && player.dir !== DIR_DOWN) player.nextDir = DIR_UP; };
+      document.getElementById('dpad-down').onclick = () => { if (player && player.dir !== DIR_UP) player.nextDir = DIR_DOWN; };
+      document.getElementById('dpad-left').onclick = () => { if (player && player.dir !== DIR_RIGHT) player.nextDir = DIR_LEFT; };
+      document.getElementById('dpad-right').onclick = () => { if (player && player.dir !== DIR_LEFT) player.nextDir = DIR_RIGHT; };
+    }
+
+    function setupUI() {
+      document.getElementById('splash-bar').style.width = '100%';
+      setTimeout(() => {
+        document.getElementById('screen-splash').classList.add('opacity-0');
+        setTimeout(() => {
+          document.getElementById('screen-splash').classList.add('hidden');
+          showMenu();
+        }, 500);
+      }, 1500);
+
+      document.getElementById('btn-play').onclick = () => {
+        playSound('click');
+        startNewGame();
+      };
+
+      document.getElementById('btn-open-skins').onclick = () => {
+        playSound('click');
+        openSkinsShop();
+      };
+
+      document.getElementById('btn-close-skins').onclick = () => {
+        playSound('click');
+        document.getElementById('modal-skins').classList.add('hidden');
+      };
+
+      document.getElementById('btn-open-settings').onclick = () => {
+        playSound('click');
+        document.getElementById('modal-settings').classList.remove('hidden');
+      };
+
+      document.getElementById('btn-close-settings').onclick = () => {
+        playSound('click');
+        document.getElementById('modal-settings').classList.add('hidden');
+      };
+
+      document.getElementById('btn-toggle-sound').onclick = () => {
+        state.soundEnabled = !state.soundEnabled;
+        const knob = document.getElementById('toggle-sound-knob');
+        const btn = document.getElementById('btn-toggle-sound');
+        if (state.soundEnabled) {
+          knob.className = 'w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform';
+          btn.className = 'w-12 h-6 bg-blue-600 rounded-full relative transition-colors';
+        } else {
+          knob.className = 'w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform';
+          btn.className = 'w-12 h-6 bg-slate-700 rounded-full relative transition-colors';
+        }
+      };
+
+      document.getElementById('btn-toggle-dpad').onclick = () => {
+        state.dpadEnabled = !state.dpadEnabled;
+        const knob = document.getElementById('toggle-dpad-knob');
+        const btn = document.getElementById('btn-toggle-dpad');
+        const dpadHUD = document.getElementById('hud-dpad');
+        if (state.dpadEnabled) {
+          knob.className = 'w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-transform';
+          btn.className = 'w-12 h-6 bg-blue-600 rounded-full relative transition-colors';
+          dpadHUD.classList.remove('hidden');
+        } else {
+          knob.className = 'w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform';
+          btn.className = 'w-12 h-6 bg-slate-700 rounded-full relative transition-colors';
+          dpadHUD.classList.add('hidden');
+        }
+      };
+
+      document.getElementById('btn-pause').onclick = () => {
+        playSound('click');
+        gameState = 'PAUSED';
+        document.getElementById('modal-pause').classList.remove('hidden');
+      };
+
+      document.getElementById('btn-resume').onclick = () => {
+        playSound('click');
+        gameState = 'PLAYING';
+        document.getElementById('modal-pause').classList.add('hidden');
+      };
+
+      document.getElementById('btn-quit').onclick = () => {
+        playSound('click');
+        document.getElementById('modal-pause').classList.add('hidden');
+        showMenu();
+      };
+
+      document.getElementById('btn-retry').onclick = () => {
+        playSound('click');
+        state.retryCount++;
+        document.getElementById('modal-gameover').classList.add('hidden');
+
+        if (state.retryCount % 2 === 0) {
+          showSimulatedAd('interstitial', () => {
+            startNewGame();
+          });
+        } else {
+          startNewGame();
+        }
+      };
+
+      document.getElementById('btn-gameover-menu').onclick = () => {
+        playSound('click');
+        document.getElementById('modal-gameover').classList.add('hidden');
+        showMenu();
+      };
+
+      document.getElementById('btn-ad-revive').onclick = () => {
+        playSound('click');
+        showSimulatedAd('rewarded', () => {
+          document.getElementById('modal-gameover').classList.add('hidden');
+          revivePlayer();
+        });
+      };
+
+      document.getElementById('btn-ad-double').onclick = () => {
+        playSound('click');
+        showSimulatedAd('rewarded', () => {
+          const earnedVal = parseInt(document.getElementById('gameover-coins-val').innerText) || 0;
+          state.coins += earnedVal;
+          document.getElementById('gameover-coins-val').innerText = earnedVal * 2;
+          document.getElementById('btn-ad-double').classList.add('hidden');
+          updateCoinsUI();
+        });
+      };
+
+      document.getElementById('btn-close-ad').onclick = () => {
+        document.getElementById('modal-ad').classList.add('hidden');
+        if (adCallback) adCallback();
+      };
+    }
+
+    function showMenu() {
+      gameState = 'MENU';
+      document.getElementById('hud-gameplay').classList.add('hidden');
+      document.getElementById('screen-menu').classList.remove('hidden');
+      updateCoinsUI();
+    }
+
+    function updateCoinsUI() {
+      document.getElementById('menu-coins').innerText = state.coins;
+      document.getElementById('skins-coins').innerText = state.coins;
+    }
+
+    function getSkinPalette(skinId) {
+      const found = SKINS.find(s => s.id === skinId);
+      return found || SKINS[0];
+    }
+
+    function openSkinsShop() {
+      updateCoinsUI();
+      const gridContainer = document.getElementById('skins-grid');
+      gridContainer.innerHTML = '';
+
+      SKINS.forEach((skin) => {
+        const card = document.createElement('div');
+        const isSelected = state.selectedSkin === skin.id;
+        const isUnlocked = skin.price === 0 || localStorage.getItem(`skin_unlocked_${skin.id}`) === 'true';
+
+        card.className = `p-3.5 rounded-2xl border flex flex-col justify-between items-center text-center space-y-2 ${
+          isSelected ? 'bg-blue-600/20 border-blue-500' : 'bg-slate-900 border-slate-800'
+        }`;
+
+        card.innerHTML = `
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-inner" style="background: ${skin.terr}">
+            <div class="w-6 h-6 rounded-md" style="background: ${skin.dark}"></div>
+          </div>
+          <div class="font-bold text-xs text-white">${skin.name}</div>
+          ${
+            isSelected
+              ? `<span class="text-xs font-black text-blue-400 uppercase tracking-wider">EQUIPPED</span>`
+              : isUnlocked
+              ? `<button class="w-full py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white">EQUIP</button>`
+              : `<button class="w-full py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-500/40 flex items-center justify-center space-x-1">
+                  <i class="fa-solid fa-coins text-amber-400"></i>
+                  <span>${skin.price}</span>
+                 </button>`
+          }
+        `;
+
+        const btn = card.querySelector('button');
+        if (btn) {
+          btn.onclick = () => {
+            playSound('click');
+            if (isUnlocked) {
+              state.selectedSkin = skin.id;
+              openSkinsShop();
+            } else if (state.coins >= skin.price) {
+              state.coins -= skin.price;
+              localStorage.setItem(`skin_unlocked_${skin.id}`, 'true');
+              state.selectedSkin = skin.id;
+              openSkinsShop();
+            }
+          };
+        }
+
+        gridContainer.appendChild(card);
+      });
+
+      document.getElementById('modal-skins').classList.remove('hidden');
+    }
+
+    let crazyGamesInitialized = false;
+    let adInProgress = false;
+
+    async function initializeCrazyGames() {
+      try {
+        if (window.CrazyGames && window.CrazyGames.SDK) {
+          await window.CrazyGames.SDK.init();
+          crazyGamesInitialized = true;
+          if (window.CrazyGames.SDK.game) {
+            window.CrazyGames.SDK.game.loadingStop();
+          }
+          console.log('CrazyGames SDK initialized:', window.CrazyGames.SDK.environment);
+        }
+      } catch (error) {
+        console.warn('CrazyGames SDK initialization failed:', error);
+      }
+    }
+
+    function crazyGameplayStart() {
+      try {
+        if (crazyGamesInitialized && window.CrazyGames.SDK.game) {
+          window.CrazyGames.SDK.game.gameplayStart();
+        }
+      } catch (error) { console.warn('CrazyGames gameplayStart failed:', error); }
+    }
+
+    function crazyGameplayStop() {
+      try {
+        if (crazyGamesInitialized && window.CrazyGames.SDK.game) {
+          window.CrazyGames.SDK.game.gameplayStop();
+        }
+      } catch (error) { console.warn('CrazyGames gameplayStop failed:', error); }
+    }
+
+    function showSimulatedAd(type, onComplete) {
+      // CrazyGames SDK handles real ads on CrazyGames and demo overlays locally.
+      // On unsupported environments, continue without granting a reward.
+      if (!crazyGamesInitialized || !window.CrazyGames.SDK.ad || adInProgress) {
+        console.warn('CrazyGames ad unavailable or already in progress.');
+        if (type === 'interstitial' && typeof onComplete === 'function') onComplete();
+        return;
+      }
+
+      adInProgress = true;
+      const previousState = gameState;
+      gameState = 'PAUSED';
+      crazyGameplayStop();
+
+      const adType = type === 'interstitial' ? 'midgame' : 'rewarded';
+      let started = false;
+
+      window.CrazyGames.SDK.ad.requestAd(adType, {
+        adStarted: () => {
+          started = true;
+          console.log('CrazyGames ad started');
+          // Pause gameplay here. Add audio mute logic here if sound is expanded.
+        },
+        adFinished: () => {
+          console.log('CrazyGames ad finished');
+          adInProgress = false;
+          gameState = previousState === 'GAMEOVER' ? 'GAMEOVER' : 'PLAYING';
+          if (adType === 'rewarded' && typeof onComplete === 'function') onComplete();
+          if (gameState === 'PLAYING') crazyGameplayStart();
+        },
+        adError: (error, errorData) => {
+          console.warn('CrazyGames ad error:', error, errorData);
+          adInProgress = false;
+          gameState = previousState === 'GAMEOVER' ? 'GAMEOVER' : 'PLAYING';
+          // Never grant a rewarded-ad benefit on failure or an unfilled ad.
+          if (adType === 'midgame' && typeof onComplete === 'function') onComplete();
+          if (gameState === 'PLAYING') crazyGameplayStart();
+        }
+      });
+    }
+
+    function startNewGame() {
+      createGrid();
+
+      const pSkin = getSkinPalette(state.selectedSkin);
+      player = new Entity(1, true, 30, 30, pSkin);
+
+      bots = [];
+      const botSpawns = [
+        { r: 10, c: 10 },
+        { r: 10, c: 50 },
+        { r: 50, c: 10 },
+        { r: 50, c: 50 }
+      ];
+
+      for (let i = 0; i < 3; i++) {
+        const spawn = botSpawns[i];
+        const bot = new Entity(2 + i, false, spawn.r, spawn.c, BOT_PALETTES[i]);
+        bots.push(bot);
+      }
+
+      particles = [];
+      floatingTexts = [];
+      gameState = 'PLAYING';
+      crazyGameplayStart();
+
+      document.getElementById('screen-menu').classList.add('hidden');
+      document.getElementById('hud-gameplay').classList.remove('hidden');
+      document.getElementById('modal-gameover').classList.add('hidden');
+      
+      if (state.dpadEnabled) {
+        document.getElementById('hud-dpad').classList.remove('hidden');
+      }
+    }
+
+    function revivePlayer() {
+      if (!player) return;
+      player.isDead = false;
+      spawnHomeTerritory(player.gridR, player.gridC, T_PLAYER_TERR);
+      player.currentTrailCells = [];
+      gameState = 'PLAYING';
+    }
+
+    function triggerGameOver(cause) {
+      crazyGameplayStop();
+      gameState = 'GAMEOVER';
+      const percent = calculateOwnedPercent(T_PLAYER_TERR);
+      const coinsEarned = Math.floor(parseFloat(percent) * 10);
+      state.coins += coinsEarned;
+
+      document.getElementById('gameover-cause').innerText = cause;
+      document.getElementById('gameover-percent').innerText = `${percent}%`;
+      document.getElementById('gameover-coins-val').innerText = coinsEarned;
+      document.getElementById('btn-ad-double').classList.remove('hidden');
+
+      document.getElementById('modal-gameover').classList.add('hidden');
+      document.getElementById('modal-gameover').classList.remove('hidden');
+      updateCoinsUI();
+    }
+
+    let lastTime = performance.now();
+
+    function gameLoop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+
+      if (gameState === 'PLAYING') {
+        if (player && !player.isDead) player.update(dt);
+        bots.forEach(b => b.update(dt));
+        updateHUD();
+      }
+
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener('wheel', (event) => event.preventDefault(), { passive: false });
+    window.addEventListener('keydown', (event) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) event.preventDefault();
+    });
+
+    window.onload = async function () {
+      await initializeCrazyGames();
+      canvas = document.getElementById('gameCanvas');
+      ctx = canvas.getContext('2d');
+
+      createGrid();
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      setupControls();
+      setupUI();
+
+      requestAnimationFrame(gameLoop);
+    };
+  </script>
+</body>
+</html>
